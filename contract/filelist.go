@@ -26,7 +26,7 @@ func newFileList(ctx api.TransactionContextInterface) *FileList {
 }
 
 func (fl *FileList) AddFile(file *File) error {
-    key, err := fl.ctx.GetStub().CreateCompositeKey(fl.Name, []string{file.FileName})
+    key, err := fl.ctx.GetStub().CreateCompositeKey(fl.Name, []string{file.Name})
     if err != nil {
         return err
     }
@@ -35,8 +35,8 @@ func (fl *FileList) AddFile(file *File) error {
     return fl.ctx.GetStub().PutState(key, buf)
 }
 
-func (fl *FileList) GetFile(fileName string) (*File, error) {
-    key, err := fl.ctx.GetStub().CreateCompositeKey(fl.Name, []string{fileName})
+func (fl *FileList) GetFile(name string) (*File, error) {
+    key, err := fl.ctx.GetStub().CreateCompositeKey(fl.Name, []string{name})
     if err != nil {
         return nil, err
     }
@@ -49,9 +49,9 @@ func (fl *FileList) GetFile(fileName string) (*File, error) {
     return f, err
 }
 
-func (fl *FileList) DelFile(fileName string) error {
+func (fl *FileList) DelFile(name string) error {
     //panic("implement me")
-    key, err := fl.ctx.GetStub().CreateCompositeKey(fl.Name, []string{fileName})
+    key, err := fl.ctx.GetStub().CreateCompositeKey(fl.Name, []string{name})
     if err != nil {
         return err
     }
