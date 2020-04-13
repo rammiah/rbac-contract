@@ -47,6 +47,9 @@ func (pl *PermissionList) GetPermission(id string) (*Permission, error) {
     if err != nil {
         return nil, err
     }
+    if len(data) == 0 {
+        return nil, nil
+    }
     permission := new(Permission)
     err = json.Unmarshal(data, permission)
     return permission, err

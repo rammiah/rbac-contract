@@ -45,6 +45,11 @@ func (rl *RoleList) GetRole(id string) (*Role, error) {
     if err != nil {
         return nil, err
     }
+
+    if len(data) == 0 {
+        return nil, nil
+    }
+
     role := new(Role)
     err = json.Unmarshal(data, role)
     return role, err
