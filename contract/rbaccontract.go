@@ -302,5 +302,6 @@ func (crt *RBACContract) RequestFile(ctx RBACContextInterface, fileName string) 
 		logrus.Errorf("RequestFile error: %s", errNotPermitted)
 		return false, errNotPermitted
 	}
-	return false, nil
+
+	return ctx.RequestFile(fileName)
 }
