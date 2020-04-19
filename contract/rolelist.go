@@ -25,6 +25,9 @@ func newRoleList(ctx api.TransactionContextInterface) *RoleList {
 }
 
 func (rl *RoleList) AddRole(role *Role) error {
+    if len(role.ID) == 0 {
+        return errBadItem
+    }
     key, err := rl.ctx.GetStub().CreateCompositeKey(rl.Name, []string{role.ID})
     if err != nil {
         return err

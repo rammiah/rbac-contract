@@ -21,6 +21,7 @@ var (
 	errNotPermitted = errors.New("the operation is not permitted")
 	errDuplicated   = errors.New("item added is duplicated")
 	errNotFound     = errors.New("item not found")
+	errBadItem    = errors.New("parameter doesn't have required value")
 )
 
 // 创建一个用于应用链码的合约
