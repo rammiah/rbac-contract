@@ -10,7 +10,9 @@ type RBACContextInterface interface {
 	GetRoleList() RoleListInterface
 	GetPermissionList() PermissionListInterface
 	GetFileList() FileListInterface
-	RequestFile(fileName string) (bool, error)
+	ReadFile(fileName string) (bool, error)
+	WriteFile(fileName string) (bool, error)
+	ExecFile(fileName string) (bool, error)
 }
 
 // rbac模型的上下文
@@ -54,14 +56,12 @@ func (ctx *RBACContext) GetFileList() FileListInterface {
 }
 
 func (ctx *RBACContext) checkPermission(rId string, pIdNeeded string) (bool, error) {
-	// 获取文件的permission
-
 	r, err := ctx.GetRoleList().GetRole(rId)
 	if err != nil {
 		return false, err
 	}
 	if r == nil {
-		return false, nil
+		return false, errRoleNotFound
 	}
 	for _, pId := range r.Permissions {
 		if pId == pIdNeeded {
@@ -82,16 +82,27 @@ func (ctx *RBACContext) checkPermission(rId string, pIdNeeded string) (bool, err
 	return false, nil
 }
 
-func (ctx *RBACContext) RequestFile(fileName string) (bool, error) {
-	// 首先获取文件需要的权限
+func (ctx *RBACContext) ReadFile(fileName string) (bool, error) {
 	f, err := ctx.GetFileList().GetFile(fileName)
-	if err != nil || f == nil {
+	if err != nil {
+		return false, err
+	}
+	if f == nil {
+		return false, errFileNotFound
+	}
+
+	// 不提供读取权限
+	if len(f.ReadPermission) == 0 {
+		return false, nil
+	}
+
+	p, err := ctx.GetPermissionList().GetPermission(f.ReadPermission)
+	if err != nil {
 		return false, err
 	}
 
-	p, err := ctx.GetPermissionList().GetPermission(f.Permission)
-	if err != nil || p == nil {
-		return false, err
+	if p == nil {
+		return false, errPermissionNotFound
 	}
 
 	xid, err := ctx.GetClientIdentity().GetX509Certificate()
@@ -101,8 +112,113 @@ func (ctx *RBACContext) RequestFile(fileName string) (bool, error) {
 	userName := xid.Subject.CommonName
 
 	u, err := ctx.GetUserList().GetUser(userName)
-	if err != nil || u == nil {
+	if err != nil {
 		return false, err
+	}
+
+	if u == nil {
+		return false, errUserNotFound
+	}
+
+	for _, rId := range u.Roles {
+		ok, err := ctx.checkPermission(rId, p.ID)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (ctx *RBACContext) WriteFile(fileName string) (bool, error) {
+	// 首先获取文件需要的权限
+	f, err := ctx.GetFileList().GetFile(fileName)
+	if err != nil {
+		return false, err
+	}
+	if f == nil {
+		return false, errFileNotFound
+	}
+
+	if len(f.WritePermission) == 0 {
+		return false, nil
+	}
+
+	p, err := ctx.GetPermissionList().GetPermission(f.WritePermission)
+	if err != nil {
+		return false, err
+	}
+
+	if p == nil {
+		return false, errPermissionNotFound
+	}
+
+	xid, err := ctx.GetClientIdentity().GetX509Certificate()
+	if err != nil {
+		return false, err
+	}
+	userName := xid.Subject.CommonName
+
+	u, err := ctx.GetUserList().GetUser(userName)
+	if err != nil {
+		return false, err
+	}
+
+	if u == nil {
+		return false, errUserNotFound
+	}
+
+	for _, rId := range u.Roles {
+		ok, err := ctx.checkPermission(rId, p.ID)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (ctx *RBACContext) ExecFile(fileName string) (bool, error) {
+	f, err := ctx.GetFileList().GetFile(fileName)
+	if err != nil {
+		return false, err
+	}
+	if f == nil {
+		return false, errFileNotFound
+	}
+
+	if len(f.ExecPermission) == 0 {
+		return false, nil
+	}
+
+		p, err := ctx.GetPermissionList().GetPermission(f.ExecPermission)
+	if err != nil {
+		return false, err
+	}
+
+	if p == nil {
+		return false, errPermissionNotFound
+	}
+
+	xid, err := ctx.GetClientIdentity().GetX509Certificate()
+	if err != nil {
+		return false, err
+	}
+	userName := xid.Subject.CommonName
+
+	u, err := ctx.GetUserList().GetUser(userName)
+	if err != nil {
+		return false, err
+	}
+
+	if u == nil {
+		return false, errUserNotFound
 	}
 
 	for _, rId := range u.Roles {

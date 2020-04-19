@@ -18,10 +18,19 @@ const (
 )
 
 var (
-	errNotPermitted = errors.New("the operation is not permitted")
-	errDuplicated   = errors.New("item added is duplicated")
-	errNotFound     = errors.New("item not found")
-	errBadItem    = errors.New("parameter doesn't have required value")
+	errNotPermitted         = errors.New("the operation is not permitted")
+	errFileDuplicated       = errors.New("file added is duplicated")
+	errUserDuplicated       = errors.New("user added is duplicated")
+	errRoleDuplicated       = errors.New("role added is duplicated")
+	errPermissionDuplicated = errors.New("permission added is duplicated")
+	errRoleNotFound         = errors.New("role item not found")
+	errFileNotFound         = errors.New("file item not found")
+	errUserNotFound         = errors.New("user item not found")
+	errPermissionNotFound   = errors.New("permission item not found")
+	errBadFile              = errors.New("unmarshal json to file failed")
+	errBadUser              = errors.New("unmarshal json to user failed")
+	errBadRole              = errors.New("unmarshal json to role failed")
+	errBadPermission        = errors.New("unmarshal json to permission failed")
 )
 
 // 创建一个用于应用链码的合约
@@ -69,7 +78,7 @@ func (crt *RBACContract) AddFile(ctx RBACContextInterface, file string) error {
 
 	if oldFile != nil {
 		logrus.Errorf("file %s already exists", f.Name)
-		return errDuplicated
+		return errFileDuplicated
 	}
 	err = ctx.GetFileList().AddFile(f)
 	if err != nil {
@@ -92,8 +101,8 @@ func (crt *RBACContract) GetFile(ctx RBACContextInterface, fileName string) (*Fi
 	}
 	// 文件查找失败
 	if f == nil {
-		logrus.Errorf("GetFile failed, %s", errNotFound)
-		return nil, errNotFound
+		logrus.Errorf("GetFile failed, %s", errRoleNotFound)
+		return nil, errFileNotFound
 	}
 	return f, nil
 
@@ -105,7 +114,6 @@ func (crt *RBACContract) DelFile(ctx RBACContextInterface, fileName string) erro
 		return errNotPermitted
 	}
 	err := ctx.GetFileList().DelFile(fileName)
-	//return ctx.GetFileList().DelFile(fileName)
 	if err != nil {
 		logrus.Errorf("DelFile error: %s", err)
 		return err
@@ -131,8 +139,8 @@ func (crt *RBACContract) AddPermission(ctx RBACContextInterface, permission stri
 	}
 
 	if oldP != nil {
-		logrus.Errorf("AddPermission error: %s", errDuplicated)
-		return errDuplicated
+		logrus.Errorf("AddPermission error: %s", errFileDuplicated)
+		return errPermissionDuplicated
 	}
 	err = ctx.GetPermissionList().AddPermission(p)
 	if err != nil {
@@ -154,8 +162,8 @@ func (crt *RBACContract) GetPermission(ctx RBACContextInterface, pId string) (*P
 	}
 
 	if p == nil {
-		logrus.Errorf("GetPermission error: %s", errNotFound)
-		return nil, errNotFound
+		logrus.Errorf("GetPermission error: %s", errRoleNotFound)
+		return nil, errPermissionNotFound
 	}
 
 	return p, nil
@@ -195,8 +203,8 @@ func (crt *RBACContract) AddRole(ctx RBACContextInterface, role string) error {
 		return err
 	}
 	if oldR != nil {
-		logrus.Errorf("AddRole error: %s", errDuplicated)
-		return errDuplicated
+		logrus.Errorf("AddRole error: %s", errFileDuplicated)
+		return errRoleDuplicated
 	}
 
 	err = ctx.GetRoleList().AddRole(r)
@@ -218,8 +226,8 @@ func (crt *RBACContract) GetRole(ctx RBACContextInterface, rId string) (*Role, e
 		return nil, err
 	}
 	if r == nil {
-		logrus.Errorf("GetRole error: %s", errNotFound)
-		return nil, errNotFound
+		logrus.Errorf("GetRole error: %s", errRoleNotFound)
+		return nil, errRoleNotFound
 	}
 	return r, nil
 }
@@ -254,8 +262,8 @@ func (crt *RBACContract) AddUser(ctx RBACContextInterface, user string) error {
 		return err
 	}
 	if oldU != nil {
-		logrus.Errorf("AddUser failed, error: %s", errDuplicated)
-		return errDuplicated
+		logrus.Errorf("AddUser failed, error: %s", errFileDuplicated)
+		return errUserDuplicated
 	}
 
 	err = ctx.GetUserList().AddUser(u)
@@ -278,8 +286,8 @@ func (crt *RBACContract) GetUser(ctx RBACContextInterface, uId string) (*User, e
 		return nil, err
 	}
 	if u == nil {
-		logrus.Errorf("GetUser error: %s", errNotFound)
-		return nil, errNotFound
+		logrus.Errorf("GetUser error: %s", errRoleNotFound)
+		return nil, errUserNotFound
 	}
 	return u, nil
 }
@@ -298,11 +306,29 @@ func (crt *RBACContract) DelUser(ctx RBACContextInterface, uId string) error {
 	return nil
 }
 
-func (crt *RBACContract) RequestFile(ctx RBACContextInterface, fileName string) (bool, error) {
+func (crt *RBACContract) ReadFile(ctx RBACContextInterface, fileName string) (bool, error) {
 	if !crt.checkOrg(ctx.GetClientIdentity()) {
-		logrus.Errorf("RequestFile error: %s", errNotPermitted)
+		logrus.Errorf("ReadFile error: %s", errNotPermitted)
 		return false, errNotPermitted
 	}
 
-	return ctx.RequestFile(fileName)
+	return ctx.ReadFile(fileName)
+}
+
+func (crt *RBACContract) WriteFile(ctx RBACContextInterface, fileName string) (bool, error) {
+	if !crt.checkOrg(ctx.GetClientIdentity()) {
+		logrus.Errorf("WriteFile error: %s", errNotPermitted)
+		return false, errNotPermitted
+	}
+
+	return ctx.WriteFile(fileName)
+}
+
+func (crt *RBACContract) ExecFile(ctx RBACContextInterface, fileName string) (bool, error) {
+	if !crt.checkOrg(ctx.GetClientIdentity()) {
+		logrus.Errorf("ExecFile error: %s", errNotPermitted)
+		return false, errNotPermitted
+	}
+
+	return ctx.ExecFile(fileName)
 }

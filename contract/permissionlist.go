@@ -28,7 +28,7 @@ func newPermissionList(ctx api.TransactionContextInterface) *PermissionList {
 func (pl *PermissionList) AddPermission(permission *Permission) error {
     //panic("implement me")
     if len(permission.ID) == 0 {
-        return errBadItem
+        return errBadPermission
     }
     key, err := pl.ctx.GetStub().CreateCompositeKey(pl.Name, []string{permission.ID})
     if err != nil {

@@ -27,7 +27,7 @@ func newFileList(ctx api.TransactionContextInterface) *FileList {
 
 func (fl *FileList) AddFile(file *File) error {
 	if len(file.Name) == 0 {
-		return errBadItem
+		return errBadFile
 	}
 	key, err := fl.ctx.GetStub().CreateCompositeKey(fl.Name, []string{file.Name})
 	if err != nil {

@@ -26,7 +26,7 @@ func newUserList(ctx api.TransactionContextInterface) *UserList {
 
 func (ul *UserList) AddUser(user *User) error {
 	if len(user.Name) == 0 {
-		return errBadItem
+		return errBadUser
 	}
 	key, err := ul.ctx.GetStub().CreateCompositeKey(ul.Name, []string{user.Name})
 	if err != nil {
