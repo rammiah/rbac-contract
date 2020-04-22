@@ -13,8 +13,9 @@ type RBACContract struct {
 }
 
 const (
-	// 管理员的id，直接硬编码到代码中
-	_ADMIN_ID = "Admin@org1.rammiah.org"
+	// 管理员的id，直接硬编码到代码中，需要和admin/enroll.js中的enrollmentID相同
+	_AdminID = "admin"
+	_MspID   = "Org1MSP"
 )
 
 var (
@@ -49,7 +50,11 @@ func (crt *RBACContract) checkAdmin(id cid.ClientIdentity) bool {
 	if err != nil || xid == nil {
 		return false
 	}
-	return xid.Subject.CommonName == _ADMIN_ID
+	mspId, err := id.GetMSPID()
+	if err != nil {
+		return false
+	}
+	return xid.Subject.CommonName == _AdminID && mspId == _MspID
 }
 
 func (crt *RBACContract) checkOrg(id cid.ClientIdentity) bool {
